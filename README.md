@@ -31,14 +31,10 @@ chat-message-service/
 │   │   └── __init__.py
 │   ├── models/
 │   │   ├── database.py        # SQLAlchemy models
-│   │   ├── documents.py       # Document models
 │   │   ├── schemas.py         # Pydantic schemas
 │   │   └── __init__.py
 │   ├── services/
 │   │   ├── chat_service.py    # Chat management logic
-│   │   ├── document_service.py # Document processing
-│   │   ├── openai_service.py  # OpenAI integration
-│   │   ├── rag_service.py     # RAG implementation
 │   │   └── __init__.py
 │   ├── storage/
 │   │   └── documents/         # Uploaded files storage
@@ -52,7 +48,6 @@ chat-message-service/
 │   └── __init__.py
 ├── tests/
 │   └── test_api.py          # API tests
-├── .env                     # Environment variables
 ├── .env.example            # Environment template
 ├── docker-compose.yml      # Docker services configuration
 ├── Dockerfile             # Application container
@@ -60,14 +55,6 @@ chat-message-service/
 └── requirements.txt      # Python dependencies
 ```
 
-### Frontend (Streamlit Web Application)
-```
-rag-chat-frontend/
-├── app.py                   # Main Streamlit application
-├── .env                     # Frontend environment variables
-├── .env.example            # Frontend environment template
-└── requirements.txt        # Frontend dependencies
-```
 
 ## 🛠️ Technology Stack
 
@@ -118,21 +105,6 @@ RATE_LIMIT_PER_MINUTE=60
 # App Configuration
 LOG_LEVEL=INFO
 APP_ENV=development
-```
-
-**Frontend Configuration:**
-
-Navigate to the frontend directory and set up environment:
-```bash
-cd rag-chat-frontend
-cp .env.example .env
-```
-
-Edit frontend `.env` file:
-```env
-# API Configuration
-API_BASE_URL=http://localhost:8000
-API_KEY=your-secret-api-key-here
 ```
 
 ### 3. Start Services with Docker
