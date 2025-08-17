@@ -1,0 +1,441 @@
+# RAG Chat Service
+
+A powerful **Retrieval-Augmented Generation (RAG)** chat service built with FastAPI, PostgreSQL, and OpenAI. This service allows users to have intelligent conversations with AI that can be enhanced by uploaded PDF documents, providing context-aware responses based on document content.
+
+## 🚀 Features
+
+- **Intelligent Chat Sessions**: Create and manage multiple chat conversations
+- **Document Upload**: Upload PDF documents to enhance conversations with RAG
+- **Vector Search**: Efficient similarity search using PostgreSQL with pgvector
+- **Conversation Memory**: Maintains context across chat sessions
+- **Web Interface**: Modern Streamlit-based web application with ChatGPT-like UI
+- **RESTful API**: Complete REST API with comprehensive endpoints
+- **Rate Limiting**: Built-in API rate limiting for production use
+- **Docker Support**: Easy deployment with Docker and Docker Compose
+- **Database Management**: Automatic migrations and database setup
+
+## 🏗️ Architecture
+
+This project consists of two main components:
+
+### Backend (FastAPI RAG Service)
+```
+chat-message-service/
+├── app/
+│   ├── api/
+│   │   ├── dependencies.py     # Database dependencies
+│   │   ├── routes.py          # API endpoints
+│   │   └── __init__.py
+│   ├── models/
+│   │   ├── database.py        # SQLAlchemy models
+│   │   ├── documents.py       # Document models
+│   │   ├── schemas.py         # Pydantic schemas
+│   │   └── __init__.py
+│   ├── services/
+│   │   ├── chat_service.py    # Chat management logic
+│   │   ├── document_service.py # Document processing
+│   │   ├── openai_service.py  # OpenAI integration
+│   │   ├── rag_service.py     # RAG implementation
+│   │   └── __init__.py
+│   ├── storage/
+│   │   └── documents/         # Uploaded files storage
+│   ├── utils/
+│   │   ├── auth.py           # Authentication utilities
+│   │   ├── logger.py         # Logging configuration
+│   │   ├── rate_limit.py     # Rate limiting
+│   │   └── __init__.py
+│   ├── config.py             # Application configuration
+│   ├── main.py              # FastAPI application entry point
+│   └── __init__.py
+├── tests/
+│   └── test_api.py          # API tests
+├── .env                     # Environment variables
+├── .env.example            # Environment template
+├── docker-compose.yml      # Docker services configuration
+├── Dockerfile             # Application container
+├── init.sql              # Database initialization
+└── requirements.txt      # Python dependencies
+```
+
+### Frontend (Streamlit Web Application)
+```
+rag-chat-frontend/
+├── app.py                   # Main Streamlit application
+├── .env                     # Frontend environment variables
+├── .env.example            # Frontend environment template
+└── requirements.txt        # Frontend dependencies
+```
+
+## 🛠️ Technology Stack
+
+### Backend
+- **Backend**: FastAPI, Python 3.11
+- **Database**: PostgreSQL with pgvector extension
+- **Database ORM**: SQLAlchemy
+- **Validation**: Pydantic
+
+
+### Infrastructure
+- **Containerization**: Docker, Docker Compose
+- **Database Admin**: pgAdmin
+
+## 📋 Prerequisites
+
+- Docker and Docker Compose
+- OpenAI API key
+- Python 3.11+ (for local development)
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd chat-message-service
+```
+
+### 2. Environment Setup
+
+**Backend Configuration:**
+
+Copy the backend environment template:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` file with your backend configuration:
+```env
+# Database
+DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/chat_db
+
+# API Configuration
+API_KEY=your-secret-api-key-here
+RATE_LIMIT_PER_MINUTE=60
+
+# App Configuration
+LOG_LEVEL=INFO
+APP_ENV=development
+```
+
+**Frontend Configuration:**
+
+Navigate to the frontend directory and set up environment:
+```bash
+cd rag-chat-frontend
+cp .env.example .env
+```
+
+Edit frontend `.env` file:
+```env
+# API Configuration
+API_BASE_URL=http://localhost:8000
+API_KEY=your-secret-api-key-here
+```
+
+### 3. Start Services with Docker
+
+```bash
+# Start all services (PostgreSQL, pgAdmin, API)
+docker-compose up -d
+
+# Check services status
+docker-compose ps
+
+# View logs
+docker-compose logs -f api
+```
+
+### 4. Verify Installation
+
+- **Backend API Documentation**: http://localhost:8000/docs
+- **Backend Health Check**: http://localhost:8000/health
+- **pgAdmin**: http://localhost:5050 (admin@admin.com / admin123)
+
+## 🔧 Local Development Setup
+
+### Backend Development
+
+1. **Install Dependencies**
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install backend dependencies
+pip install -r requirements.txt
+```
+
+2. **Database Setup**
+```bash
+# Start only PostgreSQL
+docker-compose up -d postgres
+
+# Wait for database to be ready
+docker-compose logs postgres
+```
+
+3. **Run Backend**
+```bash
+# Set environment variables
+export PYTHONPATH=$(pwd)
+
+# Run with uvicorn
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+## 📚 API Documentation
+
+### Base URL
+```
+http://localhost:8000/api/v1
+```
+
+### Authentication
+All endpoints require an API key in the header:
+```
+X-API-Key: your-secret-api-key-here
+```
+
+### 📁 Session Management
+
+#### Create Session
+```http
+POST /api/v1/sessions
+Content-Type: application/json
+
+{
+  "user_id": "user123",
+  "title": "My Chat Session"
+}
+```
+
+#### List Sessions
+```http
+GET /api/v1/sessions?user_id=user123
+```
+
+#### Get Session
+```http
+GET /api/v1/sessions/{session_id}
+```
+
+#### Update Session
+```http
+PUT /api/v1/sessions/{session_id}
+Content-Type: application/json
+
+{
+  "title": "Updated Session Title"
+}
+```
+
+#### Toggle Favorite
+```http
+PATCH /api/v1/sessions/{session_id}/favorite
+```
+
+#### Delete Session
+```http
+DELETE /api/v1/sessions/{session_id}
+```
+
+### 💬 Message Management
+
+#### Add Message
+```http
+POST /api/v1/sessions/{session_id}/messages
+Content-Type: application/json
+
+{
+  "sender": "user",
+  "content": "Hello, how are you?",
+  "context_metadata": {"type": "greeting"}
+}
+```
+
+#### Get Messages (Paginated)
+```http
+GET /api/v1/sessions/{session_id}/messages?skip=0&limit=50
+```
+
+## 📊 System Endpoints
+
+#### Health Check
+```http
+GET /health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "database": "connected",
+  "service": "Chat Storage API"
+}
+```
+
+## 🔍 Usage Examples
+
+### Example 1: Basic Chat Session (API)
+
+```bash
+# 1. Create a session
+curl -X POST "http://localhost:8000/api/v1/sessions" \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "user123", "title": "My First Chat"}'
+
+# 2. Send a message
+curl -X POST "http://localhost:8000/api/v1/sessions/{session_id}/chat" \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello! How can you help me?", "use_rag": false}'
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+pytest tests/
+
+# Run with coverage
+pytest tests/ --cov=app
+
+# Run specific test
+pytest tests/test_api.py::test_create_session
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+**Backend Variables:**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | Required |
+| `API_KEY` | API authentication key | Required |
+| `RATE_LIMIT_PER_MINUTE` | API rate limit | 60 |
+| `LOG_LEVEL` | Logging level | INFO |
+| `APP_ENV` | Application environment | development |
+
+
+### Database Configuration
+
+The service uses PostgreSQL with the following extensions:
+- `uuid-ossp`: For UUID generation
+- `vector`: For vector similarity search
+
+## 📈 Performance Considerations
+
+- **Vector Search**: Uses IVFFlat index for efficient similarity search
+- **Rate Limiting**: Configured to prevent API abuse
+- **Connection Pooling**: SQLAlchemy handles database connections efficiently
+- **Async Processing**: Document chunking includes rate limiting for OpenAI API
+
+## 🚨 Error Handling
+
+The API includes comprehensive error handling:
+- **400**: Bad Request (validation errors)
+- **401**: Unauthorized (invalid API key)
+- **404**: Not Found (resource doesn't exist)
+- **429**: Too Many Requests (rate limit exceeded)
+- **500**: Internal Server Error (unexpected errors)
+
+## 📝 Logging
+
+Logs are structured and include:
+- Request/response timing
+- Unique request IDs
+- Database operations
+- Error traces
+
+View logs:
+```bash
+# Docker logs
+docker-compose logs -f api
+
+# Local development
+tail -f app.log
+```
+
+## 🔒 Security Features
+
+- API key authentication
+- Rate limiting
+- Input validation with Pydantic
+- SQL injection prevention with SQLAlchemy
+- CORS configuration
+- Secure file upload handling
+
+## 🚀 Production Deployment
+
+### 1. Environment Setup
+```bash
+# Set production environment
+export APP_ENV=production
+export LOG_LEVEL=WARNING
+
+# Use production database
+export DATABASE_URL=postgresql://user:pass@prod-db:5432/db
+```
+
+### 2. Docker Deployment
+```bash
+# Production docker-compose with environment overrides
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+### 3. Frontend Deployment
+
+For production frontend deployment, consider:
+
+```bash
+# Build optimized frontend container
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY app.py .
+EXPOSE 8501
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+```
+
+### 4. Security Considerations
+- Use strong API keys
+- Enable HTTPS
+- Configure firewall rules
+- Set up monitoring and alerting
+- Regular security updates
+- Implement proper authentication for frontend
+
+### 5. Scaling Options
+- Horizontal scaling with load balancers
+- Database read replicas
+- Redis for session caching
+- CDN for static assets
+- Container orchestration (Kubernetes)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📞 Support
+
+For support and questions:
+- Create an issue in the GitHub repository
+- Check the documentation at `/docs` endpoint
+- Review the logs for troubleshooting
+
+## 🔄 Version History
+
+- **v1.0.0**: Initial release with basic chat functionality
+- **v1.1.0**: Enhanced error handling, logging and performance

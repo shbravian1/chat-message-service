@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: chat-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: chat_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d chat_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: chat-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      # Optional: run in single-user desktop mode (good for local dev)
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - chat-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chat-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/chat_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./app:/code/app
+      - documents_storage:/code/app/storage/documents
+    networks:
+      - chat-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  documents_storage:
+
+networks:
+  chat-network:
+    driver: bridge
