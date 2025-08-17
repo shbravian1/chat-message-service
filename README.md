@@ -303,10 +303,8 @@ The service uses PostgreSQL with the following extensions:
 
 ## 📈 Performance Considerations
 
-- **Vector Search**: Uses IVFFlat index for efficient similarity search
 - **Rate Limiting**: Configured to prevent API abuse
 - **Connection Pooling**: SQLAlchemy handles database connections efficiently
-- **Async Processing**: Document chunking includes rate limiting for OpenAI API
 
 ## 🚨 Error Handling
 
@@ -359,21 +357,6 @@ export DATABASE_URL=postgresql://user:pass@prod-db:5432/db
 ```bash
 # Production docker-compose with environment overrides
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-### 3. Frontend Deployment
-
-For production frontend deployment, consider:
-
-```bash
-# Build optimized frontend container
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY app.py .
-EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 ```
 
 ### 4. Security Considerations
